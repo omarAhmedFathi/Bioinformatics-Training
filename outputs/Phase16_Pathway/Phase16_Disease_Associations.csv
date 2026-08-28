@@ -1,0 +1,6 @@
+"Class","Metabolites_Included","Known_Associations","Literature"
+"BCAA","Valine, Leucine, Isoleucine","Type 2 Diabetes risk (elevated), Insulin Resistance","Wang et al. (2011) Nat Med"
+"Acylcarnitines","C3, C5, C16","Mitochondrial dysfunction, Insulin Resistance, T2D","Newgard et al. (2009) Cell Metab"
+"Bile Acids","Taurocholate","Metabolic Syndrome, T2D, NAFLD","Haeusler et al. (2013) Diabetes"
+"Aromatic Amino Acids","Tyrosine, Phenylalanine","T2D incidence, Insulin resistance","Wang et al. (2011) Nat Med"
+"Xanthines","Caffeine, Paraxanthine","Usually inverse association with T2D risk","van Dam et al. (2006) Diabetes"

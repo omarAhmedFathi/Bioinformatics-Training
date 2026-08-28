@@ -1,0 +1,21 @@
+Phase 16: Metabolite Functional and Pathway Discovery
+=====================================================
+
+METHODOLOGY
+-----------
+1. ID Mapping: Mapped internal dataset names to standard HMDB and KEGG IDs.
+2. Chemical Taxonomy: Assigned superclass and class to each metabolite.
+3. Pathway Annotation: Retrieved biological pathways from KEGG.
+4. Enrichment Analysis: Hypergeometric test to identify over-represented
+   pathways among the significant metabolites from prior phases.
+
+RESULTS & INTERPRETATION
+------------------------
+No pathways reached nominal significance (p < 0.05), potentially due to small panel size.
+
+Literature Context:
+Many of the key classes in this panel (BCAAs, Acylcarnitines, Aromatic AAs)
+are robust biomarkers of insulin resistance and incident Type 2 Diabetes.
+Elevated BCAAs and short-chain acylcarnitines reflect altered mitochondrial
+catabolism in obesity.
+

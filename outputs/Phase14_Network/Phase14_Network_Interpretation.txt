@@ -1,0 +1,14 @@
+Phase 14: Partial Correlation Network Analysis Summary
+
+Methodology:
+- Computed partial correlations using `ppcor` to identify direct metabolic associations while controlling for all other metabolites.
+- Thresholded edges at unadjusted p < 0.05 and |partial r| > 0.1.
+- Resulting network has 123 nodes (metabolites) and 420 edges.
+
+Top Hubs (Highest Degree):
+- Sphingomyelin_d18_1_24_1 (Degree: 24)
+- Oleate (Degree: 21)
+- Enyl_palmitoyl_linoleoyl_GPC (Degree: 20)
+- Cysteinylglycine (Degree: 20)
+- Adenosine (Degree: 19)
+

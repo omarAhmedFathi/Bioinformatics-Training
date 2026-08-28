@@ -1,0 +1,8 @@
+"Metric","Unadjusted","Adjusted"
+"Lambda",1.0181,0.9973
+"Bonferroni_Threshold",2.31e-08,2.31e-08
+"N_Significant_GW",27,15
+"N_Suggestive",429,285
+"N_Suggestive_Overlap",189,189
+"N_Unadjusted_Only",240,NA
+"N_Adjusted_Only",NA,96

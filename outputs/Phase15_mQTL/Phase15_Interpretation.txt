@@ -1,0 +1,49 @@
+Phase 15: SNP-Metabolite Association (mQTL) Mapping
+====================================================
+
+Dataset: synthetic_obesity_metabolome_data
+  Samples: 156  |  SNPs: 67735  |  Metabolites: 32
+
+METHODOLOGY
+-----------
+Unadjusted: Simple linear regression  metabolite ~ genotype  (no covariates).
+Adjusted:   Linear mixed model (EMMAX approach):
+  1. Eigendecompose GRM to decorrelate samples.
+  2. Estimate variance-component ratio (delta = sigma_g/sigma_e) via
+     profile REML under the null model for each metabolite.
+  3. Weighted regression incorporating Sex + PC1-10 as fixed-effect
+     covariates and the GRM as a random effect, controlling for
+     population stratification and cryptic relatedness.
+
+RESULTS
+-------
+Total tests per run: 2,167,520 (67,735 SNPs x 32 metabolites)
+Bonferroni threshold: p < 2.31e-08
+
+Genomic inflation factor (lambda):
+  Unadjusted: 1.0181
+  Adjusted:   0.9973
+
+Genome-wide significant hits: Unadjusted = 27, Adjusted = 15
+Suggestive hits (p < 1e-5):   Unadjusted = 429, Adjusted = 285
+Overlap at suggestive level:  189 shared, 240 unadjusted-only, 96 adjusted-only
+
+INTERPRETATION
+--------------
+Comparing adjusted versus unadjusted scans demonstrates the effect of controlling
+for population structure and relatedness.  A lambda closer to 1.0 in the adjusted
+scan confirms that the mixed model effectively accounts for confounding.
+
+With only 156 samples, statistical power is limited; large-scale mQTL studies
+(QMDiab, TwinsUK, KORA) typically require 500+ samples for robust discovery.
+Suggestive hits here are candidates for replication.
+
+BIOLOGICAL CONTEXT
+------------------
+BCAA mQTLs (valine, leucine, isoleucine):  commonly map to BCAT1/2, BCKDHA/B.
+Acylcarnitine mQTLs (C3, C5, C6, C16):    linked to CPT1A, ACADM, ACADL.
+Bile acid mQTLs (taurocholate, GCDC):      associated with SLCO1B1, UGT enzymes.
+Xanthine mQTLs (caffeine, paraxanthine):   strongly driven by CYP1A2 variation.
+Purine mQTLs (hypoxanthine, xanthine):     linked to XDH (xanthine dehydrogenase).
+GPC/lipid mQTLs:                           map to LPCAT, PLA2 family genes.
+

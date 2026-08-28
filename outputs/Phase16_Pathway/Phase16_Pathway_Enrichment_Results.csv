@@ -1,0 +1,8 @@
+"Pathway","Total_in_Pathway","Sig_in_Pathway","Expected","Fold_Enrichment","P_Value","FDR"
+"Amino acid metabolism",8,8,8,1,1,1
+"BCAA degradation",4,4,4,1,1,1
+"Fatty acid metabolism",9,9,9,1,1,1
+"Primary bile acid biosynthesis",2,2,2,1,1,1
+"Purine/Caffeine metabolism",5,5,5,1,1,1
+"Pyrimidine metabolism",1,1,1,1,1,1
+"Vitamin B6 metabolism",1,1,1,1,1,1
