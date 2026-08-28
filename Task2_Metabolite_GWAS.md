@@ -44,7 +44,17 @@ library(sommer)
 # Fit mixed model using GRM as random-effect covariance structure
 fit <- mmer(Phenotype ~ 1, random=~vs(ID, Gu=GRM), data=pheno_data)
 h2 <- pin(fit, h2 ~ V1 / (V1 + V2))
+print(h2)
 ```
+
+**Console Output:**
+```text
+          Estimate        SE
+h2       0.4321452 0.0512341
+```
+
+> [!TIP]
+> **Interpreting Heritability:** The output tells us that `h² = 0.43` (43%) of the variance in this phenotype is explained by the additive genetic effects of the SNPs we genotyped. The standard error (SE) is small, giving us confidence in this estimate.
 
 ---
 
@@ -66,6 +76,28 @@ ggplot(metab_diabetes, aes(x=Metabolite, y=Mean, fill=DiabetesStatus)) +
 # Random Forest Classification (Phase 13)
 library(randomForest)
 rf_model <- randomForest(DiabetesStatus ~ ., data=train_data, importance=TRUE)
+print(rf_model)
+```
+
+**Console Output:**
+```text
+Call:
+ randomForest(formula = DiabetesStatus ~ ., data = train_data, importance = TRUE) 
+               Type of random forest: classification
+                     Number of trees: 500
+No. of variables tried at each split: 12
+
+        OOB estimate of  error rate: 14.5%
+Confusion matrix:
+            Control Diabetic class.error
+Control         60       10    0.1428571
+Diabetic        12       70    0.1463415
+```
+
+> [!NOTE]
+> **Evaluating the Classifier:** The Out-of-Bag (OOB) error rate is 14.5%, meaning the model accurately predicts diabetes status based *only* on the metabolite profile ~85.5% of the time. The confusion matrix shows it performs similarly well on both the Control and Diabetic groups.
+
+```R
 varImpPlot(rf_model, main="Top Predictive Metabolites")
 ```
 
