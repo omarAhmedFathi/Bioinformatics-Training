@@ -1,5 +1,8 @@
 <div align="center">
   
+  ![Bioinformatics Portfolio Banner](banner.jpg)
+  
+  <br/>
 [![R](https://img.shields.io/badge/R-276DC3?style=for-the-badge&logo=r&logoColor=white)]()
 [![PLINK](https://img.shields.io/badge/PLINK-1.9%20%2F%202.0-blue?style=for-the-badge)]()
 [![GCTA](https://img.shields.io/badge/GCTA-1.93-green?style=for-the-badge)]()
