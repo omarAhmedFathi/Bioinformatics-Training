@@ -1,177 +1,282 @@
-# Task 1: Population Genetics & GWAS Pipeline
+[← Back to Main README](./README.md)
 
-This tutorial covers the first 7 phases of the bioinformatics pipeline. We start with raw genotype data, perform quality control, identify population structure, and conduct Genome-Wide Association Studies (GWAS) for both quantitative traits and binary traits. Finally, we annotate the significant findings.
+<div align="center">
+
+# 🧬 Population Genetics & GWAS Pipeline: Qatari Cohort
+
+![Cohort](https://img.shields.io/badge/Cohort_Size-156-blue?style=for-the-badge) ![SNPs](https://img.shields.io/badge/SNPs-67,735-green?style=for-the-badge) ![Phases](https://img.shields.io/badge/Phases-7-purple?style=for-the-badge)
+
+</div>
+
+Welcome to this comprehensive tutorial and report on a 7-phase bioinformatics Genome-Wide Association Study (GWAS) pipeline. We are analyzing a Qatari cohort containing **156 samples** and **67,735 SNPs**. 
+
+This document breaks down the analysis phase by phase. For each phase, we cover the underlying biology (the *why*), the methodology (the *how*), the code used, the generated outputs, and our interpretations.
+
+<div align="center">
+
+```mermaid
+graph LR
+    P1[Phase 1: QC] --> P2[Phase 2: PCA]
+    P2 --> P3[Phase 3: Clustering]
+    P3 --> P4[Phase 4: GWAS Quant]
+    P4 --> P5[Phase 5: GWAS Sex]
+    P5 --> P6[Phase 6: Annotation]
+    P6 --> P7[Phase 7: Pathway]
+```
+
+</div>
 
 ---
 
-## Phase 1: Quality Control (QC)
+## 📑 Table of Contents
 
-> [!NOTE]
-> **The Biology:** Before any genomic analysis, we must ensure the data is reliable. We filter out SNPs with very low Minor Allele Frequencies (MAF), as they lack statistical power and may represent genotyping errors. We also filter out SNPs and individuals with high missingness.
+- [🛠️ Phase 1: Quality Control (QC)](#️-phase-1-quality-control-qc)
+- [📊 Phase 2: Principal Component Analysis (PCA)](#-phase-2-principal-component-analysis-pca)
+- [🧩 Phase 3: Clustering](#-phase-3-clustering)
+- [📈 Phase 4: GWAS Quantitative (PC1 as phenotype)](#-phase-4-gwas-quantitative-pc1-as-phenotype)
+- [🧬 Phase 5: GWAS Sex (logistic)](#-phase-5-gwas-sex-logistic)
+- [🏷️ Phase 6: Annotation](#️-phase-6-annotation)
+- [🌐 Phase 7: Pathway Enrichment](#-phase-7-pathway-enrichment)
 
-### Method & Code
-We use PLINK to compute allele frequencies and missingness, then visualize the distributions in R.
+---
+
+## 🛠️ Phase 1: Quality Control (QC)
+
+> [!IMPORTANT]
+> **Biology & Rationale:** Quality control is the crucial first step in any genomic analysis. Sequencing errors, low-quality DNA, or technical artifacts can introduce false positives or mask true biological signals. We filter out rare variants (using Minor Allele Frequency, MAF), poorly genotyped SNPs (SNP missingness), and poorly genotyped individuals (Sample missingness) to ensure our dataset is robust and reliable.
+
+### The Code
+
+<details><summary>🔧 View R Code</summary>
 
 ```R
 library(ggplot2)
 
-# Read MAF data
-freq <- read.table("intermediate/phase1_freq.frq", header=TRUE, stringsAsFactors=FALSE)
-
+# 1. Minor Allele Frequency (MAF)
+freq <- read.table("../intermediate/phase1_freq.frq", header=TRUE)
 cat("Min MAF:", min(freq$MAF, na.rm=TRUE), "\n")
 cat("Max MAF:", max(freq$MAF, na.rm=TRUE), "\n")
-```
 
-**Console Output:**
-```text
-Min MAF: 0.0512 
-Max MAF: 0.4988 
-```
-
-> [!TIP]
-> **Understanding the Output:** The console output confirms that our rigorous filtering (MAF > 5%) successfully removed extremely rare variants. The remaining variants range from ~5% up to ~50% frequency in the population, which are common enough to give our statistical models enough power to detect associations.
-
-```R
-# Plot MAF
 ggplot(freq, aes(x=MAF)) + 
-  geom_histogram(binwidth=0.01, fill="steelblue", color="black") +
+  geom_histogram(binwidth=0.01, fill="steelblue", color="black") + 
+  theme_minimal() + 
+  labs(title="Minor Allele Frequency Distribution", x="MAF", y="Count")
+
+# 2. SNP Missingness
+lmiss <- read.table("../intermediate/phase1_missing.lmiss", header=TRUE)
+ggplot(lmiss, aes(x=F_MISS)) + 
+  geom_histogram(binwidth=0.001, fill="darkgreen", color="black") + 
+  theme_minimal() + 
+  labs(title="SNP Missingness", x="Fraction Missing", y="Count")
+
+# 3. Sample Missingness
+imiss <- read.table("../intermediate/phase1_missing.imiss", header=TRUE)
+ggplot(imiss, aes(x=F_MISS)) + 
+  geom_histogram(binwidth=0.001, fill="darkred", color="black") + 
   theme_minimal() +
-  labs(title="Minor Allele Frequency (MAF) Distribution", x="MAF", y="Frequency")
+  labs(title="Sample Missingness", x="Fraction Missing", y="Count")
 ```
 
-### Result
-Below is the distribution of Minor Allele Frequencies across our dataset. Notice how filtering will remove the left-most peak of very rare variants.
+</details>
+
+### Outputs & Interpretation
+
+> [!NOTE]
+> **QC Filtering Summary:** The dataset was already pre-filtered to high quality, as evidenced by the minimal data loss under standard thresholds.
+
+| Filter | Command | Retained SNPs | Retained Samples |
+| :--- | :--- | :--- | :--- |
+| **Standard filter** | `--maf 0.05 --geno 0.05 --hwe 1e-6` | 67,735 | 156 |
+| **Stricter MAF** | `--maf 0.10` | 51,129 | - |
+| **Stricter geno** | `--geno 0.01` | 67,735 | - |
+
+<br>
+
+<div align="center">
 
 ![MAF Histogram](outputs/Phase1_QC/Phase1_MAF_histogram-1.png)
+*Fig 1.1: Minor Allele Frequency Distribution*
+
+![SNP Missingness](outputs/Phase1_QC/Phase1_SNP_missingness_histogram-1.png)
+*Fig 1.2: SNP Missingness Distribution*
+
+![Sample Missingness](outputs/Phase1_QC/Phase1_Sample_missingness_histogram-1.png)
+*Fig 1.3: Sample Missingness Distribution*
+
+</div>
+
+*Interpretation:* The minimal loss of SNPs under stricter genotype missingness limits shows the genotypic data is of high quality. The MAF distribution shows an expected skew toward lower frequencies, but restricting to `> 0.05` ensures we have sufficient statistical power for downstream associations without extreme rare-variant noise.
 
 ---
 
-## Phase 2 & 3: Population Structure (PCA & Clustering)
+## 📊 Phase 2: Principal Component Analysis (PCA)
 
 > [!TIP]
-> **The Biology:** Human populations have underlying genetic structures (ancestry). If we don't account for this, our GWAS will produce false positives due to "population stratification." PCA helps us capture these ancestral axes.
+> **Biology & Rationale:** Human populations have complex demographic histories involving migrations, bottlenecks, and admixture. This creates population stratification—systematic allele frequency differences between subpopulations. PCA captures the major axes of genetic variation, which usually correlate with geography or ancestry. By using principal components as covariates in a GWAS, we control for this structure and prevent spurious associations.
 
-### Method & Code
-We calculate the eigenvectors (PCs) using PLINK, then plot them. We apply clustering (Hierarchical and DBSCAN) on the top PCs to empirically define subpopulations.
+### The Code
 
-```R
-pca_data <- read.table("intermediate/phase2_pca.eigenvec", header=FALSE, stringsAsFactors=FALSE)
-colnames(pca_data) <- c("FID", "IID", paste0("PC", 1:10))
-
-head(pca_data[, 1:5])
-```
-
-**Console Output:**
-```text
-  FID  IID        PC1        PC2        PC3
-1 ID1  ID1 -0.0152432 -0.0215341  0.0315431
-2 ID2  ID2 -0.0145321 -0.0203412  0.0305312
-3 ID3  ID3  0.0352432  0.0115341 -0.0115431
-4 ID4  ID4 -0.0151432 -0.0210341  0.0311431
-5 ID5  ID5  0.0342432  0.0105341 -0.0105431
-6 ID6  ID6 -0.0149432 -0.0205341  0.0301431
-```
-
-> [!NOTE]
-> **Understanding the Data:** Each row represents a sample (individual). The PCs (Principal Components) are continuous values representing their coordinate on an axis of genetic variation. Samples with similar PC values are genetically closer.
+<details><summary>🔧 View R Code</summary>
 
 ```R
-# Scatter plot PC1 vs PC2
-ggplot(pca_data, aes(x=PC1, y=PC2)) +
-  geom_point(alpha=0.7, color="darkorange") +
+library(ggplot2)
+
+# Load eigenvectors (PCs) and eigenvalues
+eigenvec <- read.table("../intermediate/pca_results.eigenvec", header=FALSE)
+colnames(eigenvec) <- c("FID", "IID", paste0("PC", 1:10))
+
+eigenval <- read.table("../intermediate/pca_results.eigenval", header=FALSE)
+pve <- data.frame(PC = 1:nrow(eigenval), PVE = eigenval$V1 / sum(eigenval$V1) * 100)
+
+# PCA Scatter Plot
+ggplot(eigenvec, aes(x=PC1, y=PC2)) + 
+  geom_point(alpha=0.7, color="purple") + 
   theme_minimal() +
-  labs(title="PCA: PC1 vs PC2", x="Principal Component 1", y="Principal Component 2")
+  labs(title="PCA: PC1 vs PC2")
 
-# Hierarchical Clustering using 3 PCs
-d3 <- dist(pca_data[, c("PC1", "PC2", "PC3")])
-hc3 <- hclust(d3, method = "ward.D2")
-pca_data$Cluster_3PC <- as.factor(cutree(hc3, k = 4))
+# Scree Plot
+ggplot(pve[1:10,], aes(x=factor(PC), y=PVE)) + 
+  geom_col(fill="coral") + 
+  theme_minimal() + 
+  labs(title="Scree Plot: Proportion of Variance Explained", x="Principal Component", y="% Variance Explained")
 ```
 
-### Result
-The scatter plot of PC1 vs PC2 reveals distinct clusters corresponding to ancestral backgrounds. 
+</details>
 
-![PCA Plot](outputs/Phase2_PCA/Phase2_PCA_Scatter_Plot-1.png)
-![Clustering Plot](outputs/Phase3_Clustering/Phase3_Cluster_Plot_3PCs-1.png)
+### Outputs & Interpretation
+
+<div align="center">
+
+![PCA Scatter Plot](outputs/Phase2_PCA/Phase2_PCA_Scatter_Plot-1.png)
+*Fig 2.1: PCA Scatter Plot of PC1 vs PC2*
+
+![Scree Plot](outputs/Phase2_PCA/Phase2_PCA_Scree_Plot-1.png)
+*Fig 2.2: Scree Plot showing variance explained by top 10 PCs*
+
+</div>
+
+*Interpretation:* The scatter plot of PC1 vs. PC2 visualizes the genetic landscape of our cohort, highlighting underlying ancestral diversity. The scree plot shows the variance explained by each PC; typically, the first few PCs capture the bulk of population structure, flattening out at subsequent components.
 
 ---
 
-## Phase 4 & 5: GWAS (Quantitative & Binary Traits)
+## 🧩 Phase 3: Clustering
 
 > [!IMPORTANT]
-> **The Biology:** We aim to find statistical associations between individual SNPs and a phenotype. In Phase 4, we use PC1 as a quantitative pseudo-phenotype to see which SNPs drive population structure. In Phase 5, we use Sex as a binary trait as a biological sanity check (expecting strong hits on the X/Y chromosomes).
+> **Biology & Rationale:** While PCA provides continuous axes of variation, clustering groups individuals into discrete sub-populations. Identifying these sub-populations helps in conducting stratified analyses or simply understanding the demographic composition of our cohort.
 
-### Method & Code
-PLINK runs the linear/logistic regressions. We prepare the phenotype and covariate files in R to pass into PLINK.
+### Outputs & Interpretation
 
-```R
-# Prepare phenotype for PC1
-pheno_pc1 <- pca_data[, c("FID", "IID", "PC1")]
-write.table(pheno_pc1, "intermediate/pheno_PC1.txt", quote=FALSE, row.names=FALSE, col.names=FALSE)
-
-# Prepare covariate file (PC3 to PC10)
-covar_data <- pca_data[, c("FID", "IID", paste0("PC", 3:10))]
-write.table(covar_data, "intermediate/covar.txt", quote=FALSE, row.names=FALSE, col.names=TRUE)
-```
-
-*(Association testing is then executed via bash scripts using `plink --linear` and `plink --logistic`)*
-
----
-
-## Phase 6 & 7: Annotation & Enrichment
+For clustering, we utilized the Ward.D2 hierarchical clustering method alongside DBSCAN, selecting `k=4` based on the Elbow Method. 
 
 > [!NOTE]
-> **The Biology:** A statistically significant SNP is just a coordinate. We must annotate it (map it to a gene) and perform pathway enrichment to understand what biological pathways are actually being impacted.
+> Only 4 out of 156 samples shifted their cluster assignments when comparing a 2-PC model against a 3-PC model, demonstrating the stability of our primary genetic clusters.
 
-### Method & Code
-We use the `biomaRt` package to query Ensembl and find the nearest genes, then use `clusterProfiler` for GO (Gene Ontology) enrichment. Finally, we use `qqman` to plot beautiful Manhattan plots.
+<div align="center">
 
-```R
-library(biomaRt)
-library(qqman)
+![2PC Clustering](outputs/Phase3_Clustering/Phase3_Cluster_Plot_2PCs-1.png)
+*Fig 3.1: Cluster assignments based on 2 Principal Components*
 
-# Load GWAS Results
-gwas_pc1 <- read.table("outputs/Phase4_GWAS_Quantitative/Phase4_GWAS_PC1_results.txt", header=TRUE)
-gwas_pc1 <- na.omit(gwas_pc1)
+![3PC Clustering](outputs/Phase3_Clustering/Phase3_Cluster_Plot_3PCs-1.png)
+*Fig 3.2: Cluster assignments based on 3 Principal Components*
 
-head(gwas_pc1)
-```
+![Elbow Plot](outputs/Phase3_Clustering/Phase3_Elbow_Plot-1.png)
+*Fig 3.3: Elbow plot for optimal k determination*
 
-**Console Output:**
-```text
-  CHR         SNP        BP   A1       TEST    NMISS       BETA         STAT            P 
-1   1  rs3094315    752566    G        ADD      156    -0.0135    -1.5342    0.125012
-2   1  rs3131972    752721    A        ADD      156     0.0241     2.1534    0.031291
-3   1  rs12562034   768448    A        ADD      156    -0.0052    -0.6123    0.540341
-4   1  rs11240777   798959    G        ADD      156    -0.0101    -1.1023    0.270312
-5   1  rs6681049    800007    C        ADD      156     0.0351     3.4532    0.000554
-6   1  rs4970383    838555    C        ADD      156    -0.0121    -1.4023    0.160841
-```
+</div>
 
-> [!TIP]
-> **Interpreting the Regression Table:** The `BETA` tells us the effect size (direction and magnitude), and `P` tells us if it's statistically significant. A classic GWAS threshold for significance is `P < 5e-8` due to the millions of tests performed.
-
-```R
-# Annotate SNPs using biomaRt (code abbreviated)
-snp_mart <- useEnsembl(biomart="snps", dataset="hsapiens_snp")
-# ... retrieval logic ...
-
-# Draw Manhattan Plot
-manhattan(gwas_pc1_annotated, chr="CHR", bp="BP", snp="Label", p="P", 
-          annotatePval = 5e-8, annotateTop = FALSE, 
-          suggestiveline = FALSE, main="Manhattan Plot: PC1 Association")
-```
-
-### Result
-The Manhattan plot highlights the genomic regions with genome-wide significance (peaks above the threshold line).
-
-![Manhattan PC1](outputs/Phase6_Annotation/Phase6_Manhattan_PC1_Annotated-1.png)
-*(If no SNPs reached significance, a standard plot is generated).*
-
-**Pathway Enrichment:**
-Using `clusterProfiler`, we can identify which biological pathways (like immune response, metabolic regulation) these genes collectively govern.
-
-![GO Enrichment](outputs/Phase7_Enrichment/Phase7_Enrichment_Dotplot-1.png)
+*Interpretation:* The elbow plot strongly suggests 4 clusters as the optimal trade-off between variance explained and model complexity. The consistency between 2PC and 3PC cluster allocations means that the first two components contain the vast majority of the discriminating information for these subgroups.
 
 ---
-*End of Task 1.* [Proceed to Task 2](Task2_Metabolite_GWAS.md)
+
+## 📈 Phase 4: GWAS Quantitative (PC1 as phenotype)
+
+> [!TIP]
+> **Biology & Rationale:** We use PC1 as a quantitative phenotype to discover which specific genetic variants (SNPs) drive the primary axis of population structure in this cohort. SNPs highly associated with PC1 are Ancestry Informative Markers (AIMs).
+
+### Output Data
+
+| CHR | SNP | BP | A1 | TEST | NMISS | BETA | STAT | P |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 1 | rs10907175 | 1120590 | C | ADD | 156 | -0.009401 | -0.5808 | 0.5623 |
+| 1 | rs7519837 | 1500664 | T | ADD | 155 | 0.0534 | 6.56 | **8.879e-10** |
+| 1 | rs10907187 | 1748914 | A | ADD | 156 | 0.001942 | 0.1816 | 0.8562 |
+| 1 | rs6603803 | 1802548 | G | ADD | 156 | -0.03613 | -3.862 | 0.0001683 |
+
+*Interpretation:* The output reveals highly significant SNPs, such as `rs7519837` with a P-value of `8.879e-10`. These highly significant markers are the major contributors pulling individuals along the PC1 axis, acting as strong indicators of the population structure differences.
+
+---
+
+## 🧬 Phase 5: GWAS Sex (logistic)
+
+> [!WARNING]
+> **Biology & Rationale:** Running a GWAS using biological sex as a binary phenotype acts as a vital sanity check for the pipeline. We expect no significant associations on autosomal chromosomes, as alleles are inherited randomly independent of sex. 
+
+### Outputs & Interpretation
+
+- **Cohort Breakdown:** Males = 49, Females = 107
+- **Findings:**
+  - **Zero** genome-wide significant autosomal SNPs (Bonferroni threshold = 7.3e-7).
+  - No Y chromosome variants were present in the dataset.
+  - X chromosome SNPs showed no association under an additive model. This is because males and females have the same underlying allele frequencies—the true biological difference is hemizygosity (one X in males) versus heterozygosity (two Xs in females).
+
+> [!CAUTION]
+> If significant autosomal hits were found here, it would indicate a massive batch effect (e.g., males and females were genotyped on different plates with different error rates) or sample mix-ups. The null result confirms our QC is solid!
+
+---
+
+## 🏷️ Phase 6: Annotation
+
+> [!TIP]
+> **Biology & Rationale:** Once we identify significantly associated SNPs, we need to map them to functional genomic elements, like genes or regulatory regions, to understand their biological impact. We query Ensembl using `biomaRt` to map coordinates to gene symbols.
+
+### Outputs & Interpretation
+
+We visualize the distribution of associations across the genome using Manhattan plots, highlighting the genes associated with top SNPs.
+
+<div align="center">
+
+![Manhattan PC1 Annotated](outputs/Phase6_Annotation/Phase6_Manhattan_PC1_Annotated-1.png)
+*Fig 6.1: Manhattan Plot with PC1 associations mapped to genes*
+
+![Manhattan Sex Annotated](outputs/Phase6_Annotation/Phase6_Manhattan_Sex_Annotated-1.png)
+*Fig 6.2: Manhattan Plot for Sex GWAS sanity check*
+
+</div>
+
+*Interpretation:* The PC1 Manhattan plot shows distinct "towers" of significance—these loci harbor the Ancestry Informative Markers. The Sex GWAS plot is flat, as expected, reinforcing our sanity check. By mapping these SNPs to genes, we lay the groundwork for understanding the functional pathways involved.
+
+---
+
+## 🌐 Phase 7: Pathway Enrichment
+
+> [!IMPORTANT]
+> **Biology & Rationale:** Single genes rarely act in isolation. Pathway enrichment analysis groups associated genes into biological networks or Gene Ontology (GO) terms to see if specific biological processes are over-represented in our GWAS hits.
+
+### The Findings
+
+Using `clusterProfiler` with the `org.Hs.eg.db` database, we discovered enriched pathways. Here are the top Gene Ontology (GO) results:
+
+| GO Term | Pathway / Biological Process | P-Value | Overlapping Genes |
+| :--- | :--- | :--- | :--- |
+| **GO:0042391** | regulation of membrane potential | 2.16e-07 | 35 / 530 |
+| **GO:0098742** | cell-cell adhesion via plasma-membrane adhesion molecules | 3.64e-07 | 25 / 530 |
+| **GO:1990806** | ligand-gated ion channel signaling pathway | 5.74e-07 | 10 / 530 |
+| **GO:0006816** | calcium ion transport | 2.74e-06 | 31 / 530 |
+
+### Outputs & Interpretation
+
+<div align="center">
+
+![Enrichment Dotplot](outputs/Phase7_Enrichment/Phase7_Enrichment_Dotplot-1.png)
+*Fig 7.1: Dotplot of top enriched Gene Ontology terms*
+
+![Enrichment Barplot](outputs/Phase7_Enrichment/Phase7_Enrichment_Barplot-1.png)
+*Fig 7.2: Barplot of top enriched Gene Ontology terms*
+
+</div>
+
+*Interpretation:* The enriched pathways, such as membrane potential regulation and ion channel signaling, suggest that the population differences captured by PC1 may be biologically rooted in specific physiological adaptations or historical selection pressures on these neuro-cellular processes within the Qatari subgroups. This translates statistical associations into meaningful biological hypotheses!
+
+---
+
+[← Back to Main README](./README.md)
