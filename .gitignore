@@ -1,0 +1,23 @@
+# R
+.Rhistory
+.RData
+.Rproj.user/
+*.Rproj
+.Renviron
+
+# PLINK intermediate files
+intermediate/
+*.log
+*.nosex
+*.nof
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Large data files
+data/
+*.bed
+*.bim
+*.fam
+*.raw

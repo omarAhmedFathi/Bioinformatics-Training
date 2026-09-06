@@ -1,6 +1,6 @@
-<div align="center">
-
 [← Back to Main README](./README.md)
+
+<div align="center">
 
 # 🧬 Metabolite GWAS Pipeline: Phases 8–16
 
@@ -217,6 +217,9 @@ print(paste("h2:", h2))
 ### Interpretation
 For our simulated baseline phenotype, heritability is effectively zero ($0.000260$), with a massive standard error of $0.308$. This is expected for small cohorts or phenotypes heavily driven by environment/diet. For highly genetic traits, we would expect an $h^2$ of $0.3$ to $0.8$.
 
+> [!TIP]
+> **What does this mean practically?** With $h^2 \approx 0$, a GWAS on this simulated phenotype would likely yield no hits. However, for real metabolite traits (Phase 15), we expect much higher heritability — published estimates for blood metabolites range from $0.2$ to $0.7$ (Shin et al., *Nature Genetics* 2014).
+
 ---
 
 ## 🧪 Phase 11: Metabolite QC
@@ -385,6 +388,9 @@ importance_scores <- importance(rf_model)
 
 ### Interpretation
 The models achieve near-perfect classification (AUC=1.0). This suggests that the metabolic disruption in T2D is so profound that a simple blood profile of these top 5 metabolites perfectly discriminates diabetics from healthy controls. 1,5-AG and Mannose once again dominate as the top predictors.
+
+> [!WARNING]
+> **Caveat on perfect accuracy:** While AUC=1.0 is remarkable, in a small cohort (N=154) this should be interpreted cautiously. The perfect Elastic Net score may indicate overfitting. In a production clinical setting, external validation on an independent cohort would be essential. The Random Forest's slightly lower accuracy (93.3%) with perfect sensitivity but 81.8% specificity is more realistic.
 
 ---
 

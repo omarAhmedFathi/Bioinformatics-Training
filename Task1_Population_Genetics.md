@@ -168,6 +168,34 @@ ggplot(pve[1:10,], aes(x=factor(PC), y=PVE)) +
 
 For clustering, we utilized the Ward.D2 hierarchical clustering method alongside DBSCAN, selecting `k=4` based on the Elbow Method. 
 
+### The Code
+
+<details><summary>🔧 View R Code</summary>
+
+```R
+library(ggplot2)
+library(gridExtra)
+library(dbscan)
+
+# Hierarchical Clustering using Ward's method on 2 PCs
+d2 <- dist(pca_data[, c("PC1", "PC2")])
+hc2 <- hclust(d2, method = "ward.D2")
+pca_data$Cluster_2PC <- as.factor(cutree(hc2, k = 4))
+
+# Elbow Method: Compute WSS for k=1 to k=10
+wss <- sapply(1:10, function(k) {
+  kmeans(pca_data[, c("PC1", "PC2", "PC3")], centers=k, nstart=25)$tot.withinss
+})
+plot(1:10, wss, type="b", pch=19, xlab="Number of Clusters (k)", ylab="Total WSS")
+
+# DBSCAN with dynamic epsilon
+kNN_dists <- kNNdist(pca_data[, c("PC1", "PC2", "PC3")], k = 5)
+eps_val <- quantile(kNN_dists, 0.9)
+db <- dbscan(pca_data[, c("PC1", "PC2", "PC3")], eps = eps_val, minPts = 5)
+```
+
+</details>
+
 > [!NOTE]
 > Only 4 out of 156 samples shifted their cluster assignments when comparing a 2-PC model against a 3-PC model, demonstrating the stability of our primary genetic clusters.
 
@@ -204,6 +232,9 @@ For clustering, we utilized the Ward.D2 hierarchical clustering method alongside
 
 *Interpretation:* The output reveals highly significant SNPs, such as `rs7519837` with a P-value of `8.879e-10`. These highly significant markers are the major contributors pulling individuals along the PC1 axis, acting as strong indicators of the population structure differences.
 
+> [!TIP]
+> The Manhattan and QQ plots for this GWAS are visualized in **Phase 6: Annotation**, where we overlay gene labels on the significant peaks.
+
 ---
 
 ## 🧬 Phase 5: GWAS Sex (logistic)
@@ -218,6 +249,9 @@ For clustering, we utilized the Ward.D2 hierarchical clustering method alongside
   - **Zero** genome-wide significant autosomal SNPs (Bonferroni threshold = 7.3e-7).
   - No Y chromosome variants were present in the dataset.
   - X chromosome SNPs showed no association under an additive model. This is because males and females have the same underlying allele frequencies—the true biological difference is hemizygosity (one X in males) versus heterozygosity (two Xs in females).
+
+> [!NOTE]
+> The Manhattan plot for this sanity check is shown in **Phase 6** (Fig 6.2). The flat profile across all chromosomes confirms clean data.
 
 > [!CAUTION]
 > If significant autosomal hits were found here, it would indicate a massive batch effect (e.g., males and females were genotyped on different plates with different error rates) or sample mix-ups. The null result confirms our QC is solid!

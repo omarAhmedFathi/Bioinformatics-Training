@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this pipeline, please cite it as below."
+authors:
+  - family-names: "Ahmed"
+    given-names: "Omar"
+title: "Bioinformatics Pipeline Portfolio: From QC to mQTL Discovery"
+version: 1.0.0
+date-released: 2026-09-01
+url: "https://github.com/omarAhmedFathi/Bioinformatics-Training"
+type: software
+license: MIT
+keywords:
+  - bioinformatics
+  - GWAS
+  - population-genetics
+  - metabolomics
+  - mQTL
+repository-code: "https://github.com/omarAhmedFathi/Bioinformatics-Training"
